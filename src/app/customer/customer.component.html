@@ -1,0 +1,210 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <ul class="navbar-nav mr-auto">
+    <li class="nav-item active">
+      <a class="nav-link" href="#">Restaurant</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" (click)="showList()">Home</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" (click)="showAdd()">Admin</a>
+    </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" (click)="showCart()">Cart</a>
+        </li>
+    </ul>
+</nav>
+
+
+<div class="row" *ngIf="addKey">
+  <div class="col-md-5" style="border-right:4px solid black">
+    <br>
+    <p style="font-size:20px;color:red;">Add new Recipe</p>
+    <hr>
+    <form [formGroup]="this.customerService.form" (ngSubmit)="onSubmit()">
+      <input type="hidden" formControlName="$key">
+      <div class="form-group">
+        <label>Recipe Name</label>
+        <input formControlName="fullName" class="form-control" [ngClass]="{'is-invalid':submitted && formControls.fullName.errors}">
+        <div class="invalid-feedback" *ngIf="submitted && formControls.fullName.errors">
+          This field is required.</div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input formControlName="description" class="form-control" [ngClass]="{'is-invalid':submitted && formControls.description.errors}">
+        <div class="invalid-feedback" *ngIf="submitted && formControls.description.errors">
+          Invalid.</div>
+      </div>
+      <div class="form-group">
+        <label>Cost</label>
+        <input formControlName="cost" class="form-control" [ngClass]="{'is-invalid':submitted && formControls.cost.errors}">
+        <div class="invalid-feedback" *ngIf="submitted && formControls.cost.errors">
+          <label *ngIf="formControls.cost.errors.required">This field is required.</label>
+          <label *ngIf="formControls.cost.errors.minlength">Atmost 8 numbers.</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Image path</label>
+        <input formControlName="location" class="form-control">
+      </div>
+      <div class="form-group">
+        <input type="submit" class="btn btn-primary" value="Submit">
+      </div>
+    </form>
+    <div class="alert alert-info"  *ngIf="showSuccessMessage">
+      Submitted successfully.
+    </div>
+  </div>
+
+<div class="col-md-5">
+  <br>
+  <p style="font-size:20px;color:green">Recipe already present</p>
+  <hr>
+  <br>
+  <form class="form-inline">
+    <input class="form-control" name="searchInput" placeholder="Search" #searchInput="ngModel" [(ngModel)]="searchText" style="width: 80%;">
+    <button class="btn btn-outline-primary" (click)="searchText=''">X</button>
+  </form>
+  <br><br>
+  <table class="table table-sm">
+    <thead>
+      <th>Image</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Cost</th>
+      <th></th>
+    </thead>
+    <ng-container *ngFor="let customer of customerArray">
+      <tr class="table" *ngIf="filterCondition(customer)">
+        <td>
+           <img src="{{customer.location}}" alt="{{customer.location}}" style="width:340px;height:340px;">
+        </td>
+        <td>{{customer.fullName}}</td>
+        <td>{{customer.description}}</td>
+          <td>{{customer.cost}}</td>
+          <td>
+            <button class="btn btn-outline-info" (click)="customerService.populateForm(customer)">Edit</button>
+            <h6 style="text-align:center;color:blue">---------</h6>
+            <button class="btn btn-outline-danger" (click)="onDelete(customer.$key)">Delete</button>
+          </td>
+      </tr>
+    </ng-container>
+  </table>
+  <div class="alert alert-danger" *ngIf="showDeletedMessage">
+    Deleted successfully.
+  </div>
+  </div>
+</div>
+
+<div class="" *ngIf="listKey">
+  <h1>List</h1>
+
+  <table class="table table-sm">
+    <thead>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Cost</th>
+      <th>Image</th>
+      <th></th>
+    </thead>
+    <ng-container *ngFor="let customer of customerArray">
+      <tr class="table" *ngIf="filterCondition(customer)">
+        <td>{{customer.fullName}}</td>
+        <td>{{customer.description}}</td>
+          <td>{{customer.cost}}</td>
+          <td>
+             <img src="{{customer.location}}" alt="{{customer.location}}" style="width:340px;height:340px;">
+          </td>
+          <td>
+            <!--button class="btn btn-outline-info" (click)="customerService.populateForm(customer)">Edit</button>
+            <button class="btn btn-outline-danger" (click)="onDelete(customer.$key)">Delete</button-->
+            <button class="btn btn-outline-success" (click)="onCart(customer.fullName,customer.description,customer.cost,customer.location,customer.$key)">Cart</button>
+          </td>
+      </tr>
+    </ng-container>
+  </table>
+  <div class="alert alert-danger" *ngIf="showDeletedMessage">
+    Deleted successfully.
+  </div>
+</div>
+
+
+
+
+<div class="" *ngIf="cartKey">
+  <div class="" *ngIf="cartShow">
+    <h1>Cart</h1>
+    <table class="table table-sm" *ngIf="!checkEmpty()">
+      <thead>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Cost</th>
+        <th>Image</th>
+        <th>Quantity</th>
+        <th></th>
+      </thead>
+      <ng-container *ngFor="let customer of cartArray">
+        <tr class="table" *ngIf="filterCondition(customer) && filterUser(customer.user)">
+          <td>{{customer.fullName}}</td>
+          <td>{{customer.description}}</td>
+            <td>{{customer.cost}}</td>
+            <td>
+               <img src="{{customer.location}}" alt="{{customer.location}}" style="width:340px;height:340px;">
+            </td>
+            <td><button type="button" name="button" (click)="more(customer)" class="btn btn-success">+</button>     {{customer.num}}     <button class="btn btn-danger" type="button" name="button" (click)="less(customer)">-</button></td>
+            <td>
+               <button class="btn btn-outline-danger" (click)="onDeleteCart(customer.$key,customer.cost)">Delete</button>
+               <br>
+            </td>
+        </tr>
+      </ng-container>
+    </table>
+    <br><br>
+     <div class="" style="text-align:center;">
+    <button type="button" name="button" (click)="goProceed()" class="btn btn-success" *ngIf="!checkEmpty()">Proceed</button>
+    <h1 *ngIf="checkEmpty()">Empty</h1>
+     </div>
+
+
+  </div>
+
+  <div class="" *ngIf="sumShow">
+    <br>
+    <br><br>
+    <h3 style="color:red;text-align:center;font-family:Times New Roman">Order summary</h3>
+    <table style="border:1px solid blue" align="center">
+      <tr style="border:1px solid blue">
+      <th width="100px" style="text-align:center">Name</th>
+      <th width="100px" style="text-align:center">Quantity</th>
+      <th width="10px" style="text-align:center"></th>
+      <th width="100px" style="text-align:center">Single price</th>
+      <th width="10px" style="text-align:center"></th>
+      <th width="100px" style="text-align:center">Total Cost</th>
+      </tr>
+    <ng-container *ngFor="let customer of cartArray;">
+      <tr style="text-align:center;border:1px solid blue;" *ngIf="filterUser(customer.user)">
+        <td>{{customer.fullName}}</td>
+        <td>{{customer.num}}</td>
+        <td>*</td>
+        <td>{{customer.cost}}</td>
+        <td>=</td>
+        <td>{{customer.num*customer.cost}}</td>
+        </tr>
+      </ng-container>
+      <tr style="text-align:center;border:2px solid blue;">
+        <td>Sum</td>
+        <td>{{cartLength}}</td>
+        <td>-</td>
+        <td>-</td>
+        <td>=</td>
+        <td>{{sum}}</td>
+      </tr>
+    </table>
+    <br><br>
+     <div class="" style="text-align:center;">
+       <button type="button" name="button" (click)="buy()" class="btn btn-success">Buy now</button>
+       or
+    <button type="button" name="button" (click)="goBack()" class="btn btn-danger">Back</button>
+    </div>
+  </div>
+</div>
